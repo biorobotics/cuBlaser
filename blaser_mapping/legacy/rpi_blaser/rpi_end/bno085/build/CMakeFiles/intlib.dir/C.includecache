@@ -1,0 +1,32 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/interrupt.h
+stdio.h
+-
+string.h
+-
+bcm2835.h
+-
+fcntl.h
+-
+unistd.h
+-
+poll.h
+-
+pthread.h
+-
+sys/eventfd.h
+-
+
+/home/pi/Projects/blaser-rpi/bno085/src/interrupt.c
+interrupt.h
+/home/pi/Projects/blaser-rpi/bno085/src/interrupt.h
+stdlib.h
+-
+

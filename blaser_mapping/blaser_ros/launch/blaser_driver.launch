@@ -1,0 +1,11 @@
+<!-- CMU Boeing Blaser Project -->
+
+<launch>
+  <arg name="device_name" default="blaservio1001.local"/>
+
+  <!-- blaser video bringup node -->
+  <node name="blaser_image_pub" pkg="blaser_pcl" type="blaser_image_pub.py" args="$(arg device_name)"/>
+
+  <node name="imu_driver" pkg="blaser_ros" type="imu_driver.py" output="screen"/>
+</launch>
+

@@ -1,0 +1,10 @@
+<launch>
+    <arg name="config_path" default = "$(find pipe_blaser_ros)/config/v1_vins.yaml" />
+    <arg name="vins_path" default = "$(find feature_tracker)/../" />
+
+    <node name="slam_estimator" pkg="slam_estimator" type="slam_estimator" output="screen">
+       <param name="config_file" type="string" value="$(arg config_path)" />
+       <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+</launch>

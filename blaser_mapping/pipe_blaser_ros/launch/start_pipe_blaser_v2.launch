@@ -1,0 +1,15 @@
+<launch>
+    <!-- Run alternating frame controller -->
+    <node name="ximea_camera_driver" pkg="pipe_blaser_ros" type="ximea_camera_driver.py" output="screen"/>
+
+    <!-- Run IMU launch file -->
+    <include file="$(find ros_mscl)/launch/microstrain.launch"/>
+    <!--node name="imu_driver" pkg="pipe_blaser_ros" type="imu_driver.py" output="screen"/-->
+
+    <!-- Run Realsense L515 launch file -->
+    <!--include file="$(find realsense2_camera)/launch/rs_L515.launch"/-->
+
+    <!-- Republish compressed image as raw image -->
+    <node name="image_visual_compress" pkg="image_transport" type="republish" args="raw in:=/ximea/image_visual compressed out:=/ximea/image_visual"/>
+    <node name="image_profile_compress" pkg="image_transport" type="republish" args="raw in:=/ximea/image_profile compressed out:=/ximea/image_profile"/>
+</launch>

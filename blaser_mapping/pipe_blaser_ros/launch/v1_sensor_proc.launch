@@ -1,0 +1,23 @@
+<launch>
+    <arg name="config_path" default = "$(find pipe_blaser_ros)/config/v1_vins.yaml" />
+
+    <!-- Feature tracker -->
+    <arg name="vins_path" default = "$(find feature_tracker)/../" />
+
+    <node name="feature_tracker" pkg="feature_tracker" type="feature_tracker">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <!-- ring laser triangulator -->
+    <node name="ring_laser_triangulator" pkg="pipe_blaser_ros" type="ring_laser_triangulator" args="$(arg config_path)" output="screen" />
+  
+    <!-- Republish compressed image as raw image -->
+    <node name="bright_republish" pkg="image_transport" type="republish" args="compressed in:=/blaser_camera/image_bright raw out:=/blaser_camera/image_bright"/>
+    <node name="dark_republish" pkg="image_transport" type="republish" args="compressed in:=/blaser_camera/image_dark raw out:=/blaser_camera/image_dark"/>
+
+    <!-- encoder -->
+    <node name="encoder_filter" pkg="pipe_blaser_ros" type="encoder_filter.py" output="log"/>
+
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pipe_blaser_ros)/config/vlio_rviz_config.rviz"/>
+</launch>

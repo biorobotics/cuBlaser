@@ -1,0 +1,44 @@
+%YAML:1.0
+
+# camera
+model_type: MEI
+camera_name: camera
+image_width: 1000
+image_height: 700
+mirror_parameters:
+   xi: 1.1933299845008256e+00
+distortion_parameters:
+   k1: -1.0307532762135361e+00
+   k2: 7.2867705739311539e-01
+   p1: -1.7115108692878054e-03
+   p2: -2.3862940682902107e-04
+projection_parameters:
+   gamma1: 1.5368900494749112e+03
+   gamma2: 1.5396215746367591e+03
+   u0: 5.0511964199941451e+02
+   v0: 2.1642723738028127e+02
+width: 1000
+height: 700
+
+
+# checkerboard parameters
+target_rows: 7
+target_cols: 10
+square_size: 0.005 # meters
+
+# laser detection parameters for HSV thresholding
+# For red laser that 
+hue_min: 118
+hue_max: 124
+sat_min: 150
+val_min: 70 # brightness
+val_ratio: 0.05 # val_thresh = max(val_min, image_max_val * val_ratio)
+
+segment_length_min: 1
+
+laser_ROI: [500, 100, 0, 0] # boundary width on left, right, top, bottom
+
+vis_laser_detection: 0
+laser_horizontal: 0
+
+

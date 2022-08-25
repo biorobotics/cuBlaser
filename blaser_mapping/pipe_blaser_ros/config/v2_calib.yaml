@@ -1,0 +1,37 @@
+%YAML:1.0
+
+# checkerboard
+target_rows: 7
+target_cols: 10
+square_size: 0.03 # meters
+
+# camera
+model_type: KANNALA_BRANDT
+camera_name: camera
+image_width: 1232
+image_height: 1028
+projection_parameters:
+   k2: 1.8539549136212686e-02
+   k3: -2.7991928811426227e-04
+   k4: -1.3598054666399612e-03
+   k5: -1.9885989663319989e-04
+   mu: 2.5690942370601601e+02
+   mv: 2.5722389970049119e+02
+   u0: 6.0933299970434291e+02
+   v0: 5.2108978778294863e+02
+
+# image parameters
+width: 1232
+height: 1028
+center_u: 6.0933299970434291e+02
+center_v: 5.2108978778294863e+02
+
+# laser detection parameters
+brightness_thresh_calib: 100
+hue_thresh_1_calib: 175 # [hue_thresh_1, 180]
+hue_thresh_2_calib: 10 # [0, hue_thresh_2]
+sat_thresh_calib: 100
+segment_length_thresh_calib: 5
+
+v_thresh_ratio_calib: 0.05
+mask_file: "/home/pipe/catkin_ws/blaser_ws/src/blaser_mapping/pipe_blaser_ros/config/mask_v2_170d.png"

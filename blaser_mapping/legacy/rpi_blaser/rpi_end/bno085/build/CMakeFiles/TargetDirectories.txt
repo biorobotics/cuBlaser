@@ -1,0 +1,6 @@
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/rebuild_cache.dir
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/bno08x_test.dir
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/interrupt_test.dir
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/bno08x_bcm2835.dir
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/edit_cache.dir
+/home/pi/Projects/blaser-rpi/bno085/build/CMakeFiles/intlib.dir

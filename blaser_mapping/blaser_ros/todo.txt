@@ -1,0 +1,43 @@
+High-level:
+1. VIO initialization scale issue: use laser stripe as constraints
+2. Extrinsics parameter not so good.
+3. Laser spline fitting and outlier removal.
+
+Initialization:
+1. Q: Can method 1 estimate rotation and translation accurately with little translation? We now do not care about feature depth estimation.
+  todo:
+  a) generate data through motion (large rotation, small translation) with non-co-planar 3d points (to see if homograph works)
+  b) estimate fundamental matrix and essential matrix, see R t error
+
+2. Q: can some depth help estimate R t in method 1?
+
+3. why feature tracker publishes distorted uv?
+
+Future list:
+1. Better and smoother (spline?) laser stripe extraction. Apply bilateral filtering to each scan.
+2. Use projective data association without KD-Tree
+3. Try computing descriptor of same point across many frames, see if diff is big
+6. FOL still not constrain other features' depths. Combine old method?
+7. evaluation
+8. remove laser pcd outliers
+
+Todo:
+x1. Build a map of laser and features
+x2. Complete color estimation. 1pm
+x3. Perform descriptor computation 12:30pm
+x4. Feed points into map after marginalization, incrementally compute normal. 
+x4.T visualize map points, including color 3pm
+5. Functions yielding matches, for laser pt + norm, for feature pt.
+5.T visualize matches, no residuals yet 4pm
+6. Ceres residuals
+6.T visualize map points w/ and w/o?
+7. Merge map points
+7.T visualize the process of merging
+1. try old fashioned way, restore old feature, add 3D laser constraint
+2. if no work, inspect reasons for FoL rejection, classify feature type: F_ON_L, F_NEAR_l, F_NO_L. Treat in individual ways.
+12. test & debug feature association
+
+Actions:
+2. logic: for F_ON_L no depth, for F_NEAR_L use depth of laser frame, for F_NO_L use depth of first frame.
+3. Q: how to find laser frame? visual frame is first frame. laser_start_frame - start_frame?
+

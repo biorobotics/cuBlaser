@@ -1,0 +1,36 @@
+%YAML:1.0
+
+# camera
+model_type: KANNALA_BRANDT
+camera_name: camera
+image_width: 1296
+image_height: 972
+projection_parameters:
+   k2: 9.8467085678780111e-02
+   k3: -3.2786901867770543e-02
+   k4: -8.5313419478613695e-04
+   k5: 3.5386872363211736e-04
+   mu: 2.7299639163529770e+02
+   mv: 2.7297838392713834e+02
+   u0: 5.7735228324337277e+02
+   v0: 5.0894936306763287e+02
+
+# image parameters
+width: 1296
+height: 972
+center_u: 577.352
+center_v: 508.949
+
+# laser triangulation parameters
+laser_plane: [-0.228405, 0.61683, -100.0, 17.1103]
+laser_distance_range: [0.1, 1.0] # distance between 3d point & camera
+
+# laser detection parameters
+brightness_thresh: 60
+hue_thresh_1: 170 # [hue_thresh_1, 180]
+hue_thresh_2: 10 # [0, hue_thresh_2]
+sat_thresh: 100
+segment_length_thresh: 20
+
+v_thresh_ratio: 0.05
+mask_file: "/home/dcheng/catkin_ws/pipe_blaser_ws/src/pipe_blaser_ros/config/mask_1296x972.png"

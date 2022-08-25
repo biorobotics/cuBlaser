@@ -1,0 +1,43 @@
+%YAML:1.0
+image_width: 640
+image_height: 480
+camera_name: blaserminiv3-vrep
+intrinsic_matrix: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [553.20946, 0, 319.51513, 0, 553.35477, 240.06437, 0, 0, 1]
+
+distortion_model: plumb_bob
+#k1, k2, p1, p2, k3 - k:radial, p:tangential
+distortion_coefficients: !!opencv-matrix
+    rows: 1
+    cols: 5
+    dt: d
+    data: [0.02044, -0.12602, -0.00035, -0.00088, 0.22634]
+
+laser_planes: !!opencv-matrix
+    rows: 5 # Number of laser planes
+    cols: 4 # A, B, C, D where equation is: Ax + By + Cz + D = 0
+    dt: d
+    data: [
+        -1011.2113, -9.7860, -100.0000, -18.4160,
+        2075.6035, -5.7972, -100.0000, 41.0285,
+        562.9110, 2.8272, -100.0000, 11.0825,
+        299.1623, 1.3002, -100.0000, 6.2478,
+        205.3036, -0.2402, -100.0000, 4.4202]
+
+# Laser Plane 1:
+# [-1011.2113, -9.7860, -100.0000, -18.4160]
+# Laser Plane 2:
+# [2075.6035, -5.7972, -100.0000, 41.0285]
+# Laser Plane 3:
+# [562.9110, 2.8272, -100.0000, 11.0825]
+# Laser Plane 4:
+# [299.1623, 1.3002, -100.0000, 6.2478]
+# Laser Plane 5:
+# [205.3036, -0.2402, -100.0000, 4.4202]
+# Intrinsic matrix:
+# [553.20946, 0, 319.51513, 0, 553.35477, 240.06437, 0, 0, 1]
+# Distortion coefficients:
+# [0.02044, -0.12602, -0.00035, -0.00088, 0.22634]

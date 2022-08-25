@@ -1,0 +1,4 @@
+<launch>
+    <arg name="config_file" default="$(find blaser_vins_config)/config/icra2021.yaml"/>
+    <node name="laser_detector" pkg="blaser_ros" type="laser_detector" args="$(arg config_file) minia1001" output="screen"/>
+</launch>

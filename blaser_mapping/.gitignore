@@ -1,0 +1,13 @@
+# Collected data
+blaser_ros/calib_data/
+pipe_blaser_ros/calib_data/
+
+# Random
+/.idea/
+
+# Generated files
+blaser_slam/pose_graph/
+blaser_slam/support_files/
+
+# IDE config files
+.vscode/

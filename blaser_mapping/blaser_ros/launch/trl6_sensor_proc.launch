@@ -1,0 +1,24 @@
+<launch>
+    <arg name="republish_compressed_image" default="0"/>
+    <arg name="config_path" default = "$(find blaser_ros)/config/trl6_slam.yaml" />
+
+    <!-- Feature tracker -->
+    <arg name="vins_path" default = "$(find feature_tracker)/../" />
+
+    <node name="feature_tracker" pkg="feature_tracker" type="feature_tracker" output="screen">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <node name="laser_detector" pkg="blaser_ros" type="laser_detector" args="$(arg config_path)" output="screen" />
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find blaser_ros)/config/trl6_slam.rviz"/>
+  
+    <!-- Republish compressed image as raw image -->
+    <group if="$(eval arg('republish_compressed_image') == 1)">
+        <node name="visual_republish" pkg="image_transport" type="republish" args="compressed in:=/blaser_camera/image_hexp raw out:=/blaser_camera/image_hexp"/>
+        <node name="profile_republish" pkg="image_transport" type="republish" args="compressed in:=/blaser_camera/image_lexp raw out:=/blaser_camera/image_lexp"/>
+    </group>
+
+    <!-- node name="encoder_filter" pkg="pipe_blaser_ros" type="encoder_filter.py" output="screen"/ -->
+</launch>

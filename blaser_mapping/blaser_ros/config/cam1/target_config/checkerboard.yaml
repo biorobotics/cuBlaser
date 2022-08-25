@@ -1,0 +1,5 @@
+%YAML:1.0
+target_rows: 6
+target_cols: 9
+square_size: 0.03 # meters
+

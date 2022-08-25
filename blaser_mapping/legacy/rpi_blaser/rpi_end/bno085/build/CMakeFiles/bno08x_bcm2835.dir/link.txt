@@ -1,0 +1,2 @@
+/usr/bin/ar qc libbno08x_bcm2835.a  CMakeFiles/bno08x_bcm2835.dir/sh2/sh2_SensorValue.c.o CMakeFiles/bno08x_bcm2835.dir/sh2/sh2_util.c.o CMakeFiles/bno08x_bcm2835.dir/sh2/sh2.c.o CMakeFiles/bno08x_bcm2835.dir/sh2/shtp.c.o CMakeFiles/bno08x_bcm2835.dir/src/sh2_hal_bcm2835.c.o
+/usr/bin/ranlib libbno08x_bcm2835.a

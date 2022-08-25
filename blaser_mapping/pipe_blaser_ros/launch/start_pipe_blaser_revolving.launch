@@ -1,0 +1,23 @@
+<!-- Please select from the two available versions of eigenbrain fw by setting the imu_fw_version argument. The available versions are: v2r2_imu_test and blaserusb_summer2021-->
+
+<launch>
+    <arg name="imu_fw_version" default="v2r2_imu_test"/>
+    <!-- Run alternating frame controller -->
+    <node name="ximea_camera_driver" pkg="pipe_blaser_ros" type="ximea_camera_driver.py" output="screen"/>
+
+    <!-- Run IMU launch file. We use eigenbrain imu-->
+    <!--include file="$(find ros_mscl)/launch/microstrain.launch"/-->
+    <group if="$(eval arg('imu_fw_version') == 'blaserusb_summer2021')">
+        <node name="imu_driver" pkg="pipe_blaser_ros" type="imu_driver_2_stamps.py" output="screen"/>
+    </group>
+    <group if="$(eval arg('imu_fw_version') == 'v2r2_imu_test')">
+        <node name="imu_driver" pkg="pipe_blaser_ros" type="imu_driver_1_stamp.py" output="screen"/>
+    </group>
+
+    <!-- Run Realsense L515 launch file -->
+    <!--include file="$(find realsense2_camera)/launch/rs_L515.launch"/-->
+
+    <!-- Republish compressed image as raw image -->
+    <node name="image_visual_compress" pkg="image_transport" type="republish" args="raw in:=/ximea/image_visual compressed out:=/ximea/image_visual"/>
+    <node name="image_profile_compress" pkg="image_transport" type="republish" args="raw in:=/ximea/image_profile compressed out:=/ximea/image_profile"/>
+</launch>

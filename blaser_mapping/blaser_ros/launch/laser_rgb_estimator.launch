@@ -1,0 +1,9 @@
+<launch>
+    <arg name="config_path" default = "$(find blaser_vins_config)/config/blaser_vio_calibs/blaser_vio_1001.yaml" />
+    <node name="laser_rgb_est" pkg="blaser_ros" type="laser_rgb_estimator">
+        <param name="image_topic" type="string" value="/blaser_camera/image_bright"/>
+        <param name="laser_topic" type="string" value="/laser_detector_relax/laser_points"/>
+        <param name="odom_topic" type="string" value="/slam_estimator/odometry"/>
+        <param name="config_fn" type="string" value="$(arg config_path)"/>
+    </node>
+</launch>

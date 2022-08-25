@@ -1,0 +1,7 @@
+Problems:
+x1. No vins plot.
+x2. Throw out data after beginning.
+x3. 看encoder给出的测量数据是多少 是对的
+4. Encoder数据看着好整，理应是interpolation之后的数据
+
+调encoder权重

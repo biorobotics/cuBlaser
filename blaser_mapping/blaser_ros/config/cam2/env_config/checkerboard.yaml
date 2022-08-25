@@ -1,0 +1,8 @@
+%YAML:1.0
+image_width: 720
+image_height: 405
+laser_ROI: [100, 100, 30, 100]
+red_mask_1_h_calib: [180, 255, 255]
+red_mask_1_l_calib: [170, 50, 40]
+red_mask_2_h_calib: [10, 255, 255]
+red_mask_2_l_calib: [0, 50, 40]

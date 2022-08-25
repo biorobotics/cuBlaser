@@ -1,0 +1,23 @@
+%YAML:1.0
+image_width: 1000
+image_height: 700
+camera_name: blaser-trl6
+intrinsic_matrix: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [702.77593, 0, 547.20648, 0, 704.90926, 274.79227, 0, 0, 1]
+
+distortion_model: plumb_bob
+#k1, k2, p1, p2, k3 - k:radial, p:tangential
+distortion_coefficients: !!opencv-matrix
+    rows: 1
+    cols: 5
+    dt: d
+    data: [-0.48700, 0.28191, 0.00068, -0.00095, -0.09081]
+
+laser_planes: !!opencv-matrix
+    rows: 1 # Number of laser planes
+    cols: 4 # A, B, C, D where equation is: Ax + By + Cz + D = 0
+    dt: d
+    data: [-3178.4992, -45.1355, -100.0000, 75.3231]

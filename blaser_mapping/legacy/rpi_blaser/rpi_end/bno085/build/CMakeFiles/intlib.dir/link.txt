@@ -1,0 +1,2 @@
+/usr/bin/ar qc libintlib.a  CMakeFiles/intlib.dir/src/interrupt.c.o
+/usr/bin/ranlib libintlib.a

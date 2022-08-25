@@ -1,0 +1,27 @@
+<launch>
+    <arg name="republish_compressed_image" default="0"/>
+    <arg name="config_path" default = "$(find pipe_blaser_ros)/config/v2_vins.yaml" />
+
+    <!-- Feature tracker -->
+    <arg name="vins_path" default = "$(find feature_tracker)/../" />
+
+    <node name="feature_tracker" pkg="feature_tracker" type="feature_tracker" output="screen">
+        <param name="config_file" type="string" value="$(arg config_path)" />
+        <param name="vins_folder" type="string" value="$(arg vins_path)" />
+    </node>
+
+    <node name="ring_laser_triangulator" pkg="pipe_blaser_ros" type="ring_laser_triangulator" args="$(arg config_path)" output="screen" />
+  
+    <!-- Republish compressed image as raw image -->
+    <group if="$(eval arg('republish_compressed_image') == 1)">
+        <node name="visual_republish" pkg="image_transport" type="republish" args="compressed in:=/ximea/image_visual raw out:=/ximea/image_visual"/>
+        <node name="profile_republish" pkg="image_transport" type="republish" args="compressed in:=/ximea/image_profile raw out:=/ximea/image_profile"/>
+    </group>
+
+    <node name="encoder_filter" pkg="pipe_blaser_ros" type="encoder_filter.py" output="screen"/>
+
+    <!--node name="image_sharpen" pkg="pipe_blaser_ros" type="image_sharpen.py"/-->
+  
+    <!-- rviz -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find pipe_blaser_ros)/config/vins_rviz_config.rviz"/>
+</launch>

@@ -1,0 +1,13 @@
+<launch>
+
+    <!-- Blaser Camera Driver -->
+    <node name="blaser_serial" pkg="blaser_ros" type="launch/blaser_open_serial.sh" />
+    <node name="blaser_cam_driver" pkg="blaser_pcl_core" type="handheld_blaser_v30_node" output="screen" args="--lexp_val 50" />
+
+    <!-- Blaser vision front-end -->
+    <include file="$(find blaser_ros)/launch/trl6_sensor_proc.launch" />
+
+    <!-- Blaser SLAM process -->
+    <!-- <include file="$(find blaser_ros)/launch/trl6_slam.launch" /> -->
+
+</launch>

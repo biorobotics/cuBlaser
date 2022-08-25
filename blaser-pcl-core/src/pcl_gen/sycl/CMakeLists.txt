@@ -1,0 +1,2 @@
+set(CMAKE_CXX_COMPILER dpcpp)
+set(CMAKE_C_COMPILER dpcpp)

@@ -1,0 +1,119 @@
+%YAML:1.0
+
+#common parameters
+imu_topic: "/imu"
+laser_topic: "/ring_laser_triangulator/laser_points"
+image_visual_topic: "/blaser_camera/image_bright"
+image_profile_topic: "/blaser_camera/image_dark"
+output_path: "/home/dcheng/Desktop/vins_output"
+
+#camera calibration 
+model_type: MEI
+camera_name: camera
+image_width: 1296
+image_height: 972
+mirror_parameters:
+   xi: 1.9029288250988354e+00
+distortion_parameters:
+   k1: 7.6286407872344641e-01
+   k2: -1.7377437495775041e+00
+   p1: -3.9381200812603837e-03
+   p2: -9.1546256610430072e-04
+projection_parameters:
+   gamma1: 7.8885094764310384e+02
+   gamma2: 7.8953964441788821e+02
+   u0: 5.7796962381876517e+02
+   v0: 5.1097954594847033e+02
+# Extrinsic parameter between IMU and Camera.
+estimate_extrinsic: 0   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
+                        # 1  Have an initial guess about extrinsic parameters. We will optimize around your initial guess.
+                        # 2  Don't know anything about extrinsic parameters. You don't need to give R,T. We will try to calibrate it. Do some rotation movement at beginning.                        
+#If you choose 0 or 1, you should write down the following matrix.
+extrinsicRotation: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [-0.99979079, -0.00230864, -0.02032363,
+          -0.0023738, 0.99999212, 0.00318244,
+           0.02031612, 0.00323002, -0.99978839 ]
+#Translation from camera frame to imu frame, imu^T_cam
+extrinsicTranslation: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [0.01200343, 0.00304921, -0.04576602]
+
+
+#feature traker paprameters
+max_cnt: 100            # max feature number in feature tracking
+min_dist: 20            # min distance between two features 
+corner_quality: 0.01
+freq: 20                # frequence (Hz) of publish tracking result. At least 10Hz for good estimation. If set 0, the frequence will be same as raw image 
+F_threshold: 1.0        # ransac threshold (pixel)
+show_track: 1           # publish tracking image as topic
+equalize: 0             # if image is too dark or light, trun on equalize to find enough features
+fisheye: 1              # if using fisheye, trun on it. A circle mask will be loaded to remove edge noisy points
+
+#optimization parameters
+max_solver_time: 0.022  # max solver itration time (ms), to guarantee real time
+max_num_iterations: 8   # max solver itrations, to guarantee real time
+keyframe_parallax: 30.0 # keyframe selection threshold (pixel)
+
+#imu parameters       The more accurate parameters you provide, the better performance
+acc_n: 0.1 #0.01          # accelerometer measurement noise standard deviation. #0.2
+gyr_n: 0.02 #0.0025         # gyroscope measurement noise standard deviation.     #0.05
+acc_w: 0.01 #0.001         # accelerometer bias random work noise standard deviation.  #0.02
+gyr_w: 2.0e-5 #2.0e-6       # gyroscope bias random work noise standard deviation.     #4.0e-5
+
+#acc_n: 0.2 #0.01          # accelerometer measurement noise standard deviation. #0.2
+#gyr_n: 0.05 #0.0025         # gyroscope measurement noise standard deviation.     #0.05
+#acc_w: 0.02 #0.001         # accelerometer bias random work noise standard deviation.  #0.02
+#gyr_w: 4.0e-5 #2.0e-6       # gyroscope bias random work noise standard deviation.     #4.0e-5
+
+
+g_norm: 9.80665     # gravity magnitude
+
+#loop closure parameters
+loop_closure: 0                 # start loop closure
+load_previous_pose_graph: 0     # load and reuse previous pose graph; load from 'pose_graph_save_path'
+fast_relocalization: 0          # useful in real-time and large project
+pose_graph_save_path: "/home/ubuntu/Desktop/vins_output/pose_graph/" # save and load path
+
+#unsynchronization parameters
+estimate_td: 1                      # online estimate time offset between camera and imu
+td: 0.0                             # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
+
+#rolling shutter parameters
+rolling_shutter: 1                  # 0: global shutter camera, 1: rolling shutter camera
+rolling_shutter_tr: 0               # unit: s. rolling shutter read out time per frame (from data sheet). 
+
+static_initialization: 0 
+
+#visualization parameters
+save_image: 0                   # save image in pose graph for visualization prupose; you can close this function by setting 0 
+visualize_imu_forward: 0        # output imu forward propogation to achieve low latency and high frequence results
+visualize_camera_size: 0.01      # size of camera marker in RVIZ
+visualize_camera_line_width: 0.002
+
+use_encoder: 0
+
+# image parameters
+width: 1296
+height: 972
+center_u: 577.352
+center_v: 508.949
+
+# laser triangulation parameters
+laser_plane: [-0.228405, 0.61683, -100.0, 17.1103]
+laser_distance_range: [0.1, 1.0] # distance between 3d point & camera
+
+# laser detection parameters
+brightness_thresh: 60
+hue_thresh_1: 170 # [hue_thresh_1, 180]
+hue_thresh_2: 10 # [0, hue_thresh_2]
+sat_thresh: 100
+segment_length_thresh: 20
+
+v_thresh_ratio: 0.05
+mask_file: "/home/dcheng/catkin_ws/blaser_ws/src/pipe_blaser_ros/config/mask_1296x972_car.png"
+

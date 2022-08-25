@@ -1,0 +1,18 @@
+<!-- CMU Boeing Blaser Project -->
+
+<launch>
+  <arg name="device_name" default="blaservio1001.local"/>
+
+  <!-- blaser video bringup node -->
+  <node name="blaser_image_pub" pkg="blaser_pcl" type="blaser_image_pub.py" args="$(arg device_name)"/>
+
+  <node name="imu_driver" pkg="blaser_ros" type="imu_driver.py" output="screen"/>
+
+  <!-- image compression -->
+  <param name="/blaser_camera/image_bright/compressed/jpeg_quality" type="int" value="95"/>
+  <node name="image_bright_compression" pkg="image_transport" type="republish" args="raw in:=/blaser_camera/image_bright compressed out:=/blaser_camera/image_bright"/>
+
+  <param name="/blaser_camera/image_dark/compressed/jpeg_quality" type="int" value="95"/>
+  <node name="image_dark_compression" pkg="image_transport" type="republish" args="raw in:=/blaser_camera/image_dark compressed out:=/blaser_camera/image_dark"/>
+</launch>
+

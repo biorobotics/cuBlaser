@@ -1,0 +1,23 @@
+%YAML:1.0
+image_width: 640
+image_height: 480
+camera_name: blaserminiv3-vrep
+intrinsic_matrix: !!opencv-matrix
+    rows: 3
+    cols: 3
+    dt: d
+    data: [552.92237, 0, 319.75565, 0, 552.96681, 239.93660, 0, 0, 1]
+
+distortion_model: plumb_bob
+#k1, k2, p1, p2, k3 - k:radial, p:tangential
+distortion_coefficients: !!opencv-matrix
+    rows: 1
+    cols: 5
+    dt: d
+    data: [0.02213, -0.10853, -0.00034, -0.00105, 0.15369]
+
+laser_planes: !!opencv-matrix
+    rows: 1 # Number of laser planes
+    cols: 4 # A, B, C, D where equation is: Ax + By + Cz + D = 0
+    dt: d
+    data: [547.1376, -4.0339, -100.0000, 10.8760]

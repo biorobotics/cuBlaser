@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/bno08x_test.dir/src/tests/bno08x_test.c.o  -o bno08x_test -rdynamic libintlib.a -lpthread -lbcm2835 libbno08x_bcm2835.a libintlib.a -lbcm2835 
