@@ -1,4 +1,5 @@
 #include "../include/deviceManager.hpp"
+#include <cstdlib>
 
 deviceManager::deviceManager()
 {
@@ -25,6 +26,16 @@ deviceManager::deviceManager()
 #endif
 
 #ifdef DISPATCH_CUDA
+    auto getCudaFP16Mode = [=](std::string variableName) -> int
+    {
+        char* variable = getenv(variableName.c_str());
+        return variable == NULL ? 0 : 1;
+    };
+
+    if(getCudaFP16Mode("CUDA_PREFER_FP16"))
+        this->cudaFP16Mode = 1;
+    else
+        this->cudaFP16Mode = 0;
     printf("Running on Cuda Device\n");
     backendType = 2;
 #endif
@@ -66,6 +77,8 @@ void deviceManager::dispatchFunction(Func foo, Tuple t, cudaParams cuParams)
 #endif
 
 #ifdef DISPATCH_CUDA
+    if(this->cudaFP16Mode)
+        std::runtime_error("FP16 Kernels Currently Unavailable for the dispatched function\n");
     cudaDispatch(foo, t, cuParams);
 #endif
 

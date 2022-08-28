@@ -47,6 +47,7 @@ private:
         auto call(Function f, Tuple t);
 
     int backendType;
+    int cudaFP16Mode;
 
 public:
     deviceManager();
