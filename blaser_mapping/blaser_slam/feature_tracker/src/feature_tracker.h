@@ -16,6 +16,9 @@
 #include "parameters.h"
 #include "tic_toc.h"
 
+#include <memory>
+#include <../../common/include/deviceManager.hpp>
+
 using namespace std;
 using namespace camodocal;
 using namespace Eigen;
@@ -91,4 +94,8 @@ class FeatureTracker
     double prev_time;
 
     static int n_id; // number of points (next id to assign to the new point)
+
+private:
+      std::shared_ptr<deviceManager> manager;
+
 };

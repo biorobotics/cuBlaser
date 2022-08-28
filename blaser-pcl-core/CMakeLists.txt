@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 2.8.3)
+cmake_minimum_required (VERSION 3.15)
 project (blaser_pcl_core)
 
-add_compile_options(-std=c++11)
+set(CMAKE_CXX_STANDARD_REQUIRED 14)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -21,7 +21,7 @@ find_package(OpenCV  REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(OpenMP REQUIRED)
 find_package(XIMEA)
-find_package(PythonLibs 2.7)
+find_package(PythonLibs)
 
 if(OPENMP_FOUND)
   message("OPENMP Found")

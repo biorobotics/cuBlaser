@@ -62,12 +62,13 @@ int main(int argc, char **argv)
     cv::imshow("Original Image", frame);
     GrayGravityLaserExtractor extractor(frame.cols, frame.rows);
     extractor.setRegionOfInterest(10, 0, frame.cols-10, frame.rows);
+    LaserPoints2D* points = new LaserPoints2D();
 
-    LaserPoints2D points2D = extractor.extract(frame);
+    extractor.extract(frame, points);
 
-    for (auto &it : points2D)
+    for (int i=0; i < points->x.size(); i++)
     {
-        cv::drawMarker(markedFrame, it,
+        cv::drawMarker(markedFrame, cv::Point(points->x.at(i), points->y.at(i)),
             cv::Scalar(255, 255, 255), cv::MARKER_CROSS, 1);
     }
     cv::imshow("Laser Extraction", markedFrame);

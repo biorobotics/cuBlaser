@@ -54,6 +54,7 @@ void reduceVector(vector<int> &v, vector<uchar> status)
 
 FeatureTracker::FeatureTracker()
 {
+  this->manager = std::make_shared<deviceManager>();
 }
 
 /**
@@ -207,11 +208,27 @@ void FeatureTracker::readImage(const cv::Mat &_img, double _cur_time)
       //         min distance, mask, block size, useHarrisDetector=false,
       //         k (Harris parameter)
       // n_pts are generated new points, will be added to forw_pts
-      cv::goodFeaturesToTrack(forw_img, n_pts,
+
+      switch (this->manager->getDeviceType())
+      {
+      case deviceType::SYCL:
+        ;
+        break;
+      case deviceType::CUDA:
+        ;
+        break;
+      case deviceType::X86:
+        ;
+        this->manager->dispatchFunction(cv::goodFeaturesToTrack, {forw_img, n_pts,
                               MAX_CNT - forw_pts.size(), CORNER_QUALITY,
                               MIN_DIST, mask,
                               7,
-                              false, 0.04);
+                              false, 0.04});
+        break;
+      default:
+        std::runtime_error("Unsupported Backend\n");
+        break;
+      }
     } else
       n_pts.clear();
     ROS_DEBUG("detect feature costs: %fms", t_t.toc());
