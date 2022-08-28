@@ -51,8 +51,6 @@ public:
         this->manager = std::make_shared<deviceManager>();
         this->manager->allocateBufferMemory(&this->imageBuffer, imageWidth * imageHeight * sizeof(float));
         this->manager->allocateBufferMemory(&this->imageBlurBuffer, imageWidth * imageHeight * sizeof(float));
-        this->manager->allocateSharedMemory(&this->x_array, imageWidth * imageHeight * sizeof(float));
-        this->manager->allocateSharedMemory(&this->y_array, imageWidth * imageHeight * sizeof(float));
 
         if(this->manager->getDeviceType() != 3)
         {
@@ -62,6 +60,9 @@ public:
             this->manager->allocateBufferMemory(&this->mask1, imageWidth * imageHeight * sizeof(uint8_t));
             this->manager->allocateBufferMemory(&this->mask2, imageWidth * imageHeight * sizeof(uint8_t));
             this->manager->allocateSharedMemory(&this->out, imageWidth * imageHeight * sizeof(uint8_t));
+
+            this->manager->allocateSharedMemory(&this->x_array, imageWidth * imageHeight * sizeof(float));
+            this->manager->allocateSharedMemory(&this->y_array, imageWidth * imageHeight * sizeof(float));
         }
     }
 
