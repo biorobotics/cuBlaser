@@ -1,5 +1,6 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include "kernels.hpp"
 
 #define BLOCK_SIZE 32
 
@@ -314,4 +315,70 @@ __global__ void find_min_max(float* in, float* out)
 		out[blockIdx.x + gridDim.x] = smem_max[threadIdx.x]; 
 	}
 
+}
+
+
+// Resorting to naive implementation for now
+__global__ void _cuda_BilinearInterpolation(float* input_image, float* _output_image, uint32_t scale, uint32_t rows, uint32_t cols, uint32_t output_cols)
+{
+    auto g_outputRow = blockIdx.y * blockDim.y + threadIdx.y;
+    auto g_outputCol = blockIdx.x * blockDim.x + threadIdx.x;
+
+    float ideal_inputRow = g_outputRow * scale;
+    float ideal_inputCol = g_outputCol * scale;
+
+    uint16_t row_floor = (uint16_t)fmaxf(0, floorf(ideal_inputRow));
+    uint16_t row_ceil  = (uint16_t)fminf(rows, ceilf(ideal_inputRow));
+    uint16_t col_floor = (uint16_t)fmaxf(0, floorf(ideal_inputCol));
+    uint16_t col_ceil  = (uint16_t)fminf(cols, ceilf(ideal_inputCol));
+
+    float wcf = ideal_inputCol - col_floor;
+    float wcc = 1 - wcf;
+
+    float wrf = ideal_inputRow - row_floor;
+    float wrc = 1 - wrf;
+
+    float P1 = (wcc * input_image[row_floor * cols + col_floor]) + (wcf * input_image[row_floor * cols + col_ceil]);
+    float P2 = (wcc * input_image[row_ceil * cols + col_floor])  + (wcf * input_image[row_ceil * cols + col_ceil]);
+
+    float P = (P1 * wrc) + (P2 * wrf);
+
+    _output_image[g_outputRow * output_cols + g_outputCol] = P;
+}
+
+
+__global__ void rgb2gray(uint8_t* r, uint8_t* g, uint8_t* b, float* output, int cols)
+{
+	__shared__ float _r[BLOCK_SIZE][BLOCK_SIZE + 1];
+	__shared__ float _g[BLOCK_SIZE][BLOCK_SIZE + 1];
+	__shared__ float _b[BLOCK_SIZE][BLOCK_SIZE + 1];
+
+	auto col_idx = blockIdx.x * blockDim.x + threadIdx.x;
+	auto row_idx = blockIdx.y * blockDim.y + threadIdx.y;
+
+	_r[threadIdx.y][threadIdx.x] = r[row_idx * cols + col_idx];
+	_g[threadIdx.y][threadIdx.x] = g[row_idx * cols + col_idx];	
+	_b[threadIdx.y][threadIdx.x] = b[row_idx * cols + col_idx];		
+
+	__syncthreads();
+
+	float out = _r[threadIdx.y][threadIdx.x] * 0.1144f + \
+				_g[threadIdx.y][threadIdx.x] * 0.5867f + \
+				_b[threadIdx.y][threadIdx.x] * 0.2989;
+
+	output[row_idx * cols + col_idx] = fmaxf(255, roundf(out));
+}
+
+__global__ void _toFloat(float* input, int cols)
+{
+	__shared__ float _in[BLOCK_SIZE][BLOCK_SIZE + 1];
+
+	auto col_idx = blockIdx.x * blockDim.x + threadIdx.x;
+	auto row_idx = blockIdx.y * blockDim.y + threadIdx.y;
+
+	_in[threadIdx.y][threadIdx.x] = input[row_idx * cols + col_idx];	
+
+	__syncthreads();
+
+	input[row_idx * cols + col_idx] = fdividef(_in[threadIdx.y][threadIdx.x], 255);
 }
