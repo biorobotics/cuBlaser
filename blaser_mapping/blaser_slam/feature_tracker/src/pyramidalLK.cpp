@@ -1,6 +1,5 @@
 
-#include "pyramidalLK.hpp"
-
+#include <blaser_mapping/blaser_slam/feature_tracker/src/pyramidalLK.hpp>
 
 PyramidalLKFlow::PyramidalLKFlow(uint32_t rows, uint32_t cols)
 {
@@ -56,22 +55,53 @@ inline void PyramidalLKFlow::setImagePair(float* current, float* next)
 
     this->manager->memcpy(this->inputPyramid.at(0), current, _rows * _cols * sizeof(float), memcpyDirection::hostTodevice);
     this->manager->memcpy(this->outputPyramid.at(0), next, _rows * _cols * sizeof(float), memcpyDirection::hostTodevice);
+
+    this->constructPyramids();
 }
 
 inline void PyramidalLKFlow::constructPyramids(void)
 {
     //TODO, compare performance between decreasing the size in a cascading fashion and direct from full resolution to desired resolution.
+    if(this->manager->getDeviceType() == 3)
+        std::runtime_error("This function is intended to run on an accelerator device only\n");
 
-    for(int i=1; i < numPyramids; i++)
-    {
-        if(this->manager->getDeviceType() == 3)
-            std::runtime_error("This function is intended to run on accelerator device only\n");
 #ifdef DISPATCH_SYCL
             std::runtime_error("SYCL kernel not yet available for the desired kernel\n");
 #endif
 #ifdef DISPATCH_CUDA
+    this->manager->dispatchFunction(cudaMemcpyToSymbol, {guassianKernel, weights, 9 * sizeof(float)});
+    if(this->veryFirstFrame)
+    {
+#pragma unroll
+        for(int i=1; i < numPyramids; i++)
+        {
             this->manager->dispatchFunctionAsync(_cuda_BilinearInterpolation, {this->inputPyramid.at(0), this->inputPyramid.at(i), ((this->_rows - 1) / ((this->_rows * std::pow(2, -i)) - 1)), this->_rows, this->_cols, this->_cols * std::pow(2, -i)}, 
-                                                                        {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
-#endif
+                                                                            {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+            this->manager->dispatchFunctionAsync(_cuda_BilinearInterpolation, {this->outputPyramid.at(0), this->outputPyramid.at(i), ((this->_rows - 1) / ((this->_rows * std::pow(2, -i)) - 1)), this->_rows, this->_cols, this->_cols * std::pow(2, -i)}, 
+                                                                            {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+            this->manager->deviceSynchronize();
+            // 3x3 gaussian smoothing
+            this->manager->dispatchFunction(_cuda_gaussianKernel, {this->inputPyramid.at(i), this->_cols * std::pow(2, -i)}, 
+                                                            {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+            this->manager->dispatchFunction(_cuda_gaussianKernel, {this->outputPyramid.at(i), this->_cols * std::pow(2, -i)}, 
+                                                            {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+        }
     }
+    
+    else
+    {
+        this->swapPyramids();
+#pragma unroll
+        for(int i=1; i < numPyramids; i++){
+        this->manager->dispatchFunctionAsync(_cuda_BilinearInterpolation, {this->inputPyramid.at(0), this->inputPyramid.at(i), ((this->_rows - 1) / ((this->_rows * std::pow(2, -i)) - 1)), this->_rows, this->_cols, this->_cols * std::pow(2, -i)}, 
+                                                                        {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+        this->manager->deviceSynchronize();
+        this->manager->dispatchFunction(_cuda_gaussianKernel, {this->inputPyramid.at(i), this->_cols * std::pow(2, -i)}, 
+                                                        {this->manager->getLaunchParams((this->_rows * std::pow(2, -i) / BLOCK_SIZE), this->_cols * std::pow(2, -i) / BLOCK_SIZE), this->manager->getLaunchParams(BLOCK_SIZE, BLOCK_SIZE)});
+        }
+    }
+            
+#endif
+    this->manager->deviceSynchronize();
+    this->veryFirstFrame = 0;
 }

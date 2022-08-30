@@ -1,12 +1,18 @@
 #ifndef DEVICE_MANAGER_HPP
 #define DEVICE_MANAGER_HPP
 
+#include <iostream>
+#include <vector>
+#include <tuple>
+#include <utility>
+#include <cstdlib>
+#include <memory>
+
 #ifdef DISPATCH_SYCL
     #include <CL/sycl.hpp>
 #endif
-
 #ifdef DISPATCH_CUDA
-    #include "cuda/cudaUtil.hpp"
+    #include <blaser-pcl-core/include/common/cuda/cudaUtil.hpp>
 #endif
 
 #include <iostream>
@@ -47,6 +53,7 @@ private:
 
     int backendType;
     int cudaFP16Mode;
+    int cudaDevice;
 
 public:
     deviceManager();
@@ -78,6 +85,8 @@ public:
     auto getLaunchParams(uint32_t rows, uint32_t cols);
     auto getLaunchParams(uint32_t dim1, uint32_t dim2, uint32_t dim3);
     void deviceSynchronize();
+    void selectCudaDevice(int deviceId);
 };
+
 
 #endif

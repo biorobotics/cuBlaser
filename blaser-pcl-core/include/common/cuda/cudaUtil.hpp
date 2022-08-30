@@ -21,5 +21,6 @@ void _cudaMemcpy(T* dst, T* src, size_t numBytes, int memcpyDirection);
 dim3 getDim(int x);
 dim3 getDim(int x, int y);
 dim3 getDim(int x, int y, int z);
+void setCudaDevice(int deviceId);
 
 #endif

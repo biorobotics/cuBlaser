@@ -1,6 +1,6 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
-#include "kernels.hpp"
+#include <blaser_mapping/blaser_slam/feature_tracker/src/cuda/kernels.hpp>
 
 #define BLOCK_SIZE 32
 
@@ -381,4 +381,51 @@ __global__ void _toFloat(float* input, int cols)
 	__syncthreads();
 
 	input[row_idx * cols + col_idx] = fdividef(_in[threadIdx.y][threadIdx.x], 255);
+}
+
+__global__ void _cuda_gaussianKernel(float* input, uint32_t num_cols)
+{
+	__shared__ float _image[BLOCK_SIZE+2][BLOCK_SIZE+2];
+	int32_t tx = threadIdx.x;
+    int32_t ty = threadIdx.y;
+
+    int32_t col_start = blockIdx.x * blockDim.x;
+    int32_t row_start = blockIdx.y * blockDim.y;
+
+    int32_t col_prev  = (blockIdx.x == 0 ? blockIdx.x : blockIdx.x - 1) * blockDim.x;
+    int32_t row_prev  = (blockIdx.y == 0 ? blockIdx.y : blockIdx.y - 1) * blockDim.y;
+
+    int32_t col_next = (blockIdx.x == gridDim.x - 1? blockIdx.x : blockIdx.x + 1) * blockDim.x;
+    int32_t row_next = (blockIdx.y == gridDim.y - 1 ? blockIdx.y : blockIdx.y + 1) * blockDim.y;
+
+    _image[threadIdx.y + 1][threadIdx.x + 1] = input[(row_start + threadIdx.y) * num_cols + (col_start + threadIdx.x)];
+    
+    _image[threadIdx.y + 1][0]  = input[(row_start + threadIdx.y) * num_cols + (col_prev + BLOCK_SIZE - 1)];
+    _image[threadIdx.y + 1][BLOCK_SIZE + 1] = input[(row_start + threadIdx.y) * num_cols + (col_next + 0)];
+    _image[0][threadIdx.x + 1] = input[(row_prev + BLOCK_SIZE - 1) * num_cols + (col_start + threadIdx.x)];
+    _image[BLOCK_SIZE + 1][threadIdx.x + 1] = input[(row_next + 0) * num_cols + (col_start + threadIdx.x)];
+
+    _image[0][0] = input[(row_prev + BLOCK_SIZE - 1) * num_cols + (col_prev + BLOCK_SIZE - 1)];
+    _image[0][BLOCK_SIZE + 1] = input[(row_prev + BLOCK_SIZE - 1) * num_cols + (col_next + 0)];
+    _image[BLOCK_SIZE + 1][0] = input[(row_next + 0) * num_cols + (col_prev + BLOCK_SIZE - 1)];
+    _image[BLOCK_SIZE + 1][BLOCK_SIZE + 1] = input[(row_next + 0) * num_cols + (col_next + 0)];
+
+	__syncthreads();
+
+    ++tx;
+    ++ty;
+
+    int w_offset_row = 1;
+    int w_offset_col = 1;
+
+	float smooth;
+
+    for(int i=-1; i <= 1; i++)
+#pragma unroll
+        for(int j=-1; j <= 1; j++)
+        {
+            smooth += guassianKernel[(i+w_offset_row) * 3 + (j+w_offset_col)] * _image[ty + i][tx + j];
+        }
+
+	input[(row_start + threadIdx.y)*num_cols + (col_start + threadIdx.x)] = smooth;
 }

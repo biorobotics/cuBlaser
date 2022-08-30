@@ -22,4 +22,6 @@ dim3 getDim(int x);
 dim3 getDim(int x, int y);
 dim3 getDim(int x, int y, int z);
 
+void setCudaDevice(int deviceID);
+
 #endif

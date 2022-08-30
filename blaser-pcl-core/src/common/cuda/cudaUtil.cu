@@ -76,3 +76,12 @@ dim3 getDim(int x, int y){
 dim3 getDim(int x, int y, int z){
        return dim3(x, y, z);
 }
+
+void setCudaDevice(int deviceId)
+{
+       int numDevices;
+       cudaGetDeviceCount(&numDevices);
+       if(deviceId > numDevices - 1)
+              std::runtime_error("Device ID Greater than Number of available Cuda Devices\n");
+       cudaSetDevice(deviceId);      
+}

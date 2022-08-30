@@ -1,7 +1,13 @@
+#ifndef CUDA_FEATURE_TRACKER_KERNELS_HPP
+#define CUDA_FEATURE_TRACKER_KERNELS_HPP
+
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 
 #define BLOCK_SIZE 32
+
+float weights[9] = {0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625};
+__constant__ float guassianKernel[9];
 
 __global__ void _cuda_sobel(float* x, float* dx, float* dy, int num_cols);
 __global__ void _cuda_getScores(float* dx, float* dy, float* R, int num_cols);
@@ -21,3 +27,6 @@ __global__ void rgb2gray(uint8_t* r, uint8_t* g, uint8_t* b, float* output, int 
 
 __global__ void _toFloat(float* input, int cols);
 
+__global__ void _cuda_gaussianKernel(float* input, uint32_t num_cols);
+
+#endif

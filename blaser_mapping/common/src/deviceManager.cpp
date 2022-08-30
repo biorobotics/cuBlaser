@@ -1,4 +1,4 @@
-#include "../include/deviceManager.hpp"
+#include <blaser_mapping/common/include/deviceManager.hpp>
 #include <cstdlib>
 
 deviceManager::deviceManager()
@@ -32,11 +32,20 @@ deviceManager::deviceManager()
         return variable == NULL ? 0 : 1;
     };
 
+    auto getPrefferedCudaDevice = [=](std::string variableName)
+    {
+        char* variable = getenv(variableName.c_str());
+        return variable == NULL ? 0 : std::stoi(std::string(variable));
+    }
+
     if(getCudaFP16Mode("CUDA_PREFER_FP16"))
         this->cudaFP16Mode = 1;
     else
         this->cudaFP16Mode = 0;
     printf("Running on Cuda Device\n");
+    this->selectCudaDevice(getPrefferedCudaDevice("BLASER_TARGET_CUDA_DEVICE"));
+
+    printf("Selected Cuda Device = %d\n", getPrefferedCudaDevice("BLASER_TARGET_CUDA_DEVICE"));
     backendType = 2;
 #endif
 
@@ -59,7 +68,7 @@ void deviceManager::printDeviceInfo()
     std::cout << "Vendor = " << this->Queue.get_device().get_info<cl::sycl::info::device::vendor>() << "\n";
 #endif
 #ifdef DISPATCH_CUDA
-    printCudaDeviceInfo(0);
+    printCudaDeviceInfo(this->cudaDevice);
 #endif
 #ifdef DISPATCH_SIMD
     printf("Running on Host Device\n");
@@ -220,5 +229,16 @@ void deviceManager::deviceSynchronize()
 #endif
 #ifdef DISPATCH_SYCL
     this->Queue.wait();
+#endif
+}
+
+void deviceManager::selectCudaDevice(int deviceId)
+{
+    if (this->backendType == static_cast<int>(deviceType::CUDA))
+    {
+        std::runtime_error("Trying to select Cuda Device even though selected backend is not Cuda\n");
+    }
+#ifdef DISPATCH_CUDA
+    setCudaDevice(deviceId);
 #endif
 }
