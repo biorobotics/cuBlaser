@@ -157,3 +157,69 @@ void deviceManager::memcpy(T *dst, T *src, size_t numBytes, int memcpyDirection 
 int deviceManager::getDeviceType(){
     return this->backendType;
 }
+
+
+template <typename Func, typename Tuple, typename cudaParams>
+void deviceManager::dispatchFunctionAsync(Func foo, Tuple t, cudaParams cuParams)
+{
+
+#ifdef DISPATCH_SYCL
+    this->Queue.submit(
+        foo);
+#endif
+
+#ifdef DISPATCH_CUDA
+    if(this->cudaFP16Mode)
+        std::runtime_error("FP16 Kernels Currently Unavailable for the dispatched function\n");
+    cudaDispatchAsync(foo, t, cuParams);
+#endif
+
+#ifdef DISPATCH_SIMD
+    this->call(foo, t);
+#endif
+}
+
+
+auto deviceManager::getLaunchParams(uint32_t numElements)
+{
+#ifdef DISPATCH_CUDA
+    return getDim(numElements);
+#endif
+
+#ifdef DISPATCH_SYCL
+    return cl::sycl::range<1>(numElements);
+#endif
+}
+
+auto deviceManager::getLaunchParams(uint32_t rows, uint32_t cols)
+{
+#ifdef DISPATCH_CUDA
+    return getDim(rows, cols);
+#endif
+
+#ifdef DISPATCH_SYCL
+    return cl::sycl::range<2>(rows, cols);
+#endif
+}
+
+
+auto deviceManager::getLaunchParams(uint32_t dim1, uint32_t dim2, uint32_t dim3)
+{
+#ifdef DISPATCH_CUDA
+    return getDim(dim1, dim2, dim3);
+#endif
+
+#ifdef DISPATCH_SYCL
+    return cl::sycl::range<3>(dim1, dim2, dim3);
+#endif
+}
+
+void deviceManager::deviceSynchronize()
+{
+#ifdef DISPATCH_CUDA
+    cudaDeviceSynchronize();
+#endif
+#ifdef DISPATCH_SYCL
+    this->Queue.wait();
+#endif
+}

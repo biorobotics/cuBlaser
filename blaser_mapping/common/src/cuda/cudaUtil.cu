@@ -1,5 +1,5 @@
-#include "cudaUtil.hpp"
-#include <blaser-pcl-core/include/common/deviceManager.hpp>
+#include <blaser_mapping/common/include/cuda/cudaUtil.hpp>
+#include <blaser_mapping/common/include/deviceManager.hpp>
 
 template<typename Function, typename Tuple, size_t ... I>
 void launchKernel(Function f, Tuple t, std::index_sequence<I ...>, dim3 gridDim, dim3 blockDim)
@@ -8,6 +8,13 @@ void launchKernel(Function f, Tuple t, std::index_sequence<I ...>, dim3 gridDim,
      cudaDeviceSynchronize();
 }
 
+template<typename Function, typename Tuple, size_t ... I>
+void launchKernelAsync(Function f, Tuple t, std::index_sequence<I ...>, dim3 gridDim, dim3 blockDim)
+{
+     f<<<gridDim, blockDim>>>(std::get<I>(t) ...);;
+}
+
+
 template<typename Function, typename Tuple, typename Params>
 void cudaDispatch(Function f, Tuple t, Params cuParams)
 {
@@ -15,6 +22,12 @@ void cudaDispatch(Function f, Tuple t, Params cuParams)
     return launchKernel(f, t, std::make_index_sequence<size>{}, std::get<0>(cuParams), std::get<1>(cuParams));
 }
 
+template<typename Function, typename Tuple, typename Params>
+void cudaDispatchAsync(Function f, Tuple t, Params cuParams)
+{
+    static constexpr auto size = std::tuple_size<Tuple>::value;
+    return launchKernelAsync(f, t, std::make_index_sequence<size>{}, std::get<0>(cuParams), std::get<1>(cuParams));
+}
 
 void  printCudaDeviceInfo(int deviceId)
 {

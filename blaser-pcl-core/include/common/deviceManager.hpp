@@ -24,6 +24,13 @@ enum deviceType{
     X86  = 3
 } ;
 
+enum memcpyDirection{
+    deviceTodevice = 0,
+    hostTodevice = 1,
+    deviceTohost = 2,
+    hostTohost = 3
+};
+
 class deviceManager
 {
 private:
@@ -50,6 +57,9 @@ public:
     template <typename Func, typename Tuple, typename cudaParams>
         void dispatchFunction(Func foo, Tuple t, cudaParams cuParams);
 
+    template <typename Func, typename Tuple, typename cudaParams>
+        void dispatchFunctionAsync(Func foo, Tuple t, cudaParams cuParams);
+
     template<typename Func, typename Tuple>
         void _cpu_dispatch(Func foo, Tuple t);
 
@@ -63,6 +73,11 @@ public:
         void memcpy(T* dst, T* src, size_t numBytes, int memcpyDirection = 0);
     
     int getDeviceType();
+
+    auto getLaunchParams(uint32_t numElements);
+    auto getLaunchParams(uint32_t rows, uint32_t cols);
+    auto getLaunchParams(uint32_t dim1, uint32_t dim2, uint32_t dim3);
+    void deviceSynchronize();
 };
 
 #endif

@@ -17,8 +17,6 @@ __global__ void find_min_max(float* in, float* out);
 
 __global__ void _cuda_BilinearInterpolation(float* input_image, float* _output_image, uint32_t scale, uint32_t rows, uint32_t cols, uint32_t output_cols);
 
-__global__ void _cuda_BilinearInterpolation(float* input_image, float* _output_image, uint32_t scale, uint32_t rows, uint32_t cols, uint32_t output_cols);
-
 __global__ void rgb2gray(uint8_t* r, uint8_t* g, uint8_t* b, float* output, int cols);
 
 __global__ void _toFloat(float* input, int cols);
