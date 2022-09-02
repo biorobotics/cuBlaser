@@ -48,9 +48,11 @@ void MaximumSearchLaserExtractor::getLaserMasked(
         break;
     
     case deviceType::X86:
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask1Lo, m_mask1Hi, mask1});
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask2Lo, m_mask2Hi, mask2});
-        this->manager->dispatchFunction(cv::add, {mask1, mask2, out});
+        std::tuple function = {cv::inRange, cv::inRange, cv::add};
+        std::tuple arguments = {{frame, m_mask1Lo, m_mask1Hi, mask1}, {frame, m_mask2Lo, m_mask2Hi, mask2}, 
+                                {mask1, mask2, out}};
+        
+        this->manager->dispatchFunctions(function, arguments);
         break;
     
     default:
@@ -191,9 +193,11 @@ void GrayGravityLaserExtractor::getLaserMasked(
         break;
     
     case deviceType::X86:
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask1Lo, m_mask1Hi, mask1});
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask2Lo, m_mask2Hi, mask2});
-        this->manager->dispatchFunction(cv::add, {mask1, mask2, out});
+        std::tuple function = {cv::inRange, cv::inRange, cv::add};
+        std::tuple arguments = {{frame, m_mask1Lo, m_mask1Hi, mask1}, {frame, m_mask2Lo, m_mask2Hi, mask2}, 
+                                {mask1, mask2, out}};
+        
+        this->manager->dispatchFunctions(function, arguments);
         break;
     
     default:
@@ -355,10 +359,18 @@ void StegersLaserExtractor::getLaserMasked(InputImage &frame, OutputImage &out)
         break;
     
     case deviceType::X86:
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask1Lo, m_mask1Hi, mask1});
-        this->manager->dispatchFunction(cv::inRange, {frame, m_mask2Lo, m_mask2Hi, mask2});
-        this->manager->dispatchFunction(cv::bitwise_or, {mask1, mask2, mask_all});
-        this->manager->dispatchFunction(cv::bitwise_and, {frame, frame, out, mask_all});
+        std::tuple function = { cv::inRange, 
+                                cv::inRange, 
+                                cv::bitwise_or, 
+                                cv::bitwise_and};
+        
+        std::tuple arguments = {{frame, m_mask1Lo, m_mask1Hi, mask1}, 
+                                {frame, m_mask2Lo, m_mask2Hi, mask2}, 
+                                {mask1, mask2, out}, 
+                                {mask1, mask2, mask_all}, 
+                                {frame, frame, out, mask_all}};
+        
+        this->manager->dispatchFunctions(function, arguments);
         break;
     
     default:
