@@ -242,3 +242,9 @@ void deviceManager::selectCudaDevice(int deviceId)
     setCudaDevice(deviceId);
 #endif
 }
+
+template <typename Func, typename Tuple, typename cudaParams>
+void deviceManager::dispatchFunctions(Func foo, Tuple fooArgurments, cudaParams optionalCuParams)
+{
+    this->dispatchMultipleFunctions(foo, fooArgurments, optionalCuParams);
+}

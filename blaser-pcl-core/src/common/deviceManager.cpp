@@ -1,6 +1,5 @@
 #include <blaser-pcl-core/include/common/deviceManager.hpp>
 
-
 deviceManager::deviceManager()
 {
 
@@ -241,4 +240,10 @@ void deviceManager::selectCudaDevice(int deviceId)
 #ifdef DISPATCH_CUDA
     setCudaDevice(deviceId);
 #endif
+}
+
+template <typename Func, typename Tuple, typename cudaParams>
+void deviceManager::dispatchFunctions(Func foo, Tuple fooArgurments, cudaParams optionalCuParams)
+{
+    this->dispatchMultipleFunctions(foo, fooArgurments, optionalCuParams);
 }
