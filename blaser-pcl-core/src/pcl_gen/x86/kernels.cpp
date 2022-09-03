@@ -1,5 +1,12 @@
-#include <pcl_gen/x86/kernels.hpp>
+#include <blaser-pcl-core/include/pcl_gen/x86/kernels.hpp>
 
+/**
+ * @brief _stergersVectorShufflePostProcessing. This is to be called after Stergers GPU Version of 
+ * Laser Extraction.  
+ * Shuffles the input vectors based to accumulate the laser points and clip the output vector.
+ * If AVX512 is supported, it defaults to run on AVX512, otherwise falls back to AVX2.
+ * @return auto 
+ */
 inline auto _stergersVectorShufflePostProcessing(void)
 {
 
@@ -49,6 +56,11 @@ inline auto _stergersVectorShufflePostProcessing(void)
     return kernel;
 }
 
+/**
+ * @brief SIMD Accelerated version of the Stergers Laser Extraction. Uses AVX2 by default. 
+ * 
+ * @return auto 
+ */
 inline auto _x86_StergersLaserExtractor(void)
 {
     auto kernel = [=](float *img_ptr, float *img_orig_ptr, float *x_points, float *y_points, uint32_t cols, uint32_t rows, LaserPoints2D *points) -> void
@@ -91,7 +103,7 @@ inline auto _x86_StergersLaserExtractor(void)
                 __m256 _ip1j = _mm256_loadu_ps(img_ptr + idx_after);
 
                 __m256 img_orig_value = _mm256_loadu_ps(img_orig_ptr + idx);
-
+                // Load the Image values
                 __m256 _dx = _mm256_sub_ps(_ijn1, _ij);
                 __m256 _dy = _mm256_sub_ps(_in1j, _ij);
 
@@ -101,6 +113,7 @@ inline auto _x86_StergersLaserExtractor(void)
                 __m256 _dxy = _mm256_sub_ps(_mm256_sub_ps(_in1jn1, _in1j), _dx);
 
                 __m256 sub_dxx_dyy = _mm256_sub_ps(_dxx, _dyy);
+                // Calculate the gradients. 
 
                 __m256 dsc = _mm256_sqrt_ps(_mm256_fmadd_ps(sub_dxx_dyy, sub_dxx_dyy,
                                                             _mm256_mul_ps(_mm256_mul_ps(setFours, _dxy), _dx)));
@@ -121,6 +134,7 @@ inline auto _x86_StergersLaserExtractor(void)
 
                 _dxy_new = _mm256_blendv_ps(_dxy_new, setZeros, check1);
                 vector_1_2 = _mm256_blendv_ps(vector_1_2, setZeros, check1);
+                // 2x2 eigen value and vector calculation
 
                 __m256 t_numerator = _mm256_add_ps(_mm256_mul_ps(_dxy_new, _dx), _mm256_mul_ps(vector_1_2, _dy));
                 __m256 t_denom = _mm256_add_ps(_mm256_mul_ps(_dx, _mm256_mul_ps(_dx, _dxx)),

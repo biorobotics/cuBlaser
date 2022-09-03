@@ -438,18 +438,29 @@ void StegersLaserExtractor::extract(InputImage &frame, LaserPoints2D* points)
     split(img_mask, color_planes);
     img_orig = color_planes[2];
     img_blur = img_orig.clone();
-
-    // Gaussian filtering
     img_blur.convertTo(img_blur, CV_32FC1);
-    GaussianBlur(
-        img_blur, img_blur, cv::Size(0, 0),
-        m_sigma_gaussian, m_sigma_gaussian); // OpenCV Gaussian Blur is fast. 
 
     // Direct access and manipulation of cv::Mat pointers causes heap corruption during the run for some reason.
     // Hence the buffers; 
 
     this->manager->memcpy(this->imageBuffer, img_orig.ptr<float>(0), img_orig.rows * img_orig.cols * sizeof(float), 1);
     this->manager->memcpy(this->imageBlurBuffer, img_blur.ptr<float>(0), img_blur.rows * img_blur.cols * sizeof(float), 1);
+    // Gaussian filtering
+
+#ifdef DISPATCH_SYCL
+    this->manager->dispatchFunction(_sycl_gaussianKernel(this->imageBlurBuffer, img_orig.rows, img_orig.cols));
+#endif
+
+#ifdef DISPATCH_CUDA
+    this->manager->dispatchFunction(_cuda_gaussianKernel, {this->imageBlurBuffer, img_orig.cols}, {
+        getDim(img_orig.rows / BLOCK_SIZE, img_orig.cols / BLOCK_SIZE), getDim(BLOCK_SIZE, BLOCK_SIZE)
+    });
+#endif
+
+#ifdef DISPATCH_SIMD
+    this->manager->dispatchFunction(GaussianBlur, {img_blur, img_blur, cv::Size(0, 0),
+        m_sigma_gaussian, m_sigma_gaussian});
+#endif
 
     points->reserve(img_blur.rows * img_blur.cols);
 

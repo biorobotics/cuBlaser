@@ -4,7 +4,7 @@
 /**
  * @file deviceManager.hpp
  * @author AD (atharva.dubey.cmu@gmail.com)
- * @brief Device Manager Header file, present in blaser_pcl-core
+ * @brief Device Manager Header file, present in blaser_slam
  * @version 0.1
  * @date 2022-09-02
  * 
@@ -140,7 +140,7 @@ public:
      * @brief Construct a new device Manager object
      * The Device Manger is the API responsible for managing various target backend.
      * This includes memory allocations and memcpy's and dispatching the kernel to the desired backend
-     * 
+     * \n 
      * The selected Backend is decided during the build using user managed defines in the CMake
      * During the build, the user would pass a variable of -DBACKEND_TYPE which would value of either SYCL, CUDA or HOST
      * 
@@ -150,7 +150,8 @@ public:
      * If the backend type is selected as Cuda, it searches and target the selected cuda device. The selection process is driven
      * by the environment variable BLASER_TARGET_CUDA_DEVICE which takes a integer value between 0 and num_gpus - 1. If this variable is 
      * not set, GPU with device id 0 is selected.
-     * 
+     * If the environment variable CUDA_PREFER_FP16 is set, FP16 Cuda kernels are dispatched instead of full precision ones.
+     *  
      * If the device type is HOST. It uses x86 host CPU.
      * 
      */
@@ -245,11 +246,25 @@ public:
      */
     template <typename T>
     void memcpy(T *dst, T *src, size_t numBytes, int memcpyDirection = 0);
-
+    /**
+     * @brief Get backend device type
+     * SYCL = 1
+     * CUDA = 2
+     * X86  = 3
+     * @return int 
+     */
     int getDeviceType();
 
     auto getLaunchParams(uint32_t numElements);
     auto getLaunchParams(uint32_t rows, uint32_t cols);
+    /**
+     * @brief Get the Kernel Launch params for either SYCL or Cuda
+     * 
+     * @param dim1 Dimensions in x direction
+     * @param dim2 Dimensions in y direction
+     * @param dim3 Dimensions in z direction
+     * @return auto 
+     */
     auto getLaunchParams(uint32_t dim1, uint32_t dim2, uint32_t dim3);
     /**
      * @brief Synchronizes the hardware device

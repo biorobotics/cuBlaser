@@ -1,6 +1,16 @@
 #include <pcl_gen/sycl/kernels.hpp>
 
-
+/**
+ * @brief SYCL version of sterger laser extraction version. Return a lambda function defining the function
+ * 
+ * @param image Device Pointer to the original image
+ * @param image_blur Device pointner to the Gaussian Blurred image
+ * @param x_array Array to store x coordinates
+ * @param y_array Array to store y coordinates
+ * @param rows Number of rows in the image
+ * @param cols Numbers of columns in the Image
+ * @return auto 
+ */
 auto _sycl_StergersLaserExtractor(float* image, float* image_blur, float* x_array, float* y_array, 
             uint32_t rows, uint32_t cols)
 {
@@ -41,20 +51,21 @@ auto _sycl_StergersLaserExtractor(float* image, float* image_blur, float* x_arra
             __sharedMem[iter.get_local_range(1) + 1][iter.get_local_range(0) + 1] = image_blur[(row_next + 0) * cols + (col_next + 0)];
 
             __image[local_y][local_x] = image[idx_y * cols + idx_x];
-
-            iter.barrier();
+            // Fill the local memory for fast access
+            iter.barrier(); // Wait for all the threads to fill the local memory
 
             float dx  = __sharedMem[local_y + 1][local_x] - __sharedMem[local_y + 1][local_x + 1];
             float dy  = __sharedMem[local_y][local_x + 1] - __sharedMem[local_y + 1][local_x + 1];
             float dxx = __sharedMem[local_y + 1][local_x] - (2 * __sharedMem[local_y + 1][local_x + 1]) + __sharedMem[local_y + 1][local_x + 2];
             float dyy = __sharedMem[local_y][local_x + 1] - (2 * __sharedMem[local_y + 1][local_x + 1]) + __sharedMem[local_y + 2][local_x + 1];
             float dxy = __sharedMem[local_y][local_x] - __sharedMem[local_y][local_x + 1] - dx;
+            // Gradient Calculcation
 
             float dsc = sycl::sqrt(((dxx - dyy) * (dxx - dyy)) + 4 * dxy * dxy);
 
             float value_1 = (dxx + dyy + dsc) / 2;
             float vector_1_1 = dxy;
-            float vector_1_2 = value_1 - dxx;
+            float vector_1_2 = value_1 - dxx; // 2z2 eigen value and eigen vector calculation for 
             float norm = sycl::sqrt((vector_1_1 * vector_1_1) + (vector_1_2 * vector_1_2));
 
                   vector_1_1 = vector_1_1 / (norm + 1e-8);
@@ -176,4 +187,61 @@ inline auto _sycl_Triangulator(float* x_array, float* y_array, pcl::PointXYZRGB*
     };
 
     return kernel;
+}
+
+
+auto _sycl_gaussianKernel(float* image, uint32_t num_cols, uint32_t num_rows)
+{
+    nd_range<2> launchParams = nd_range<2>(range<2>(num_rows / 16, num_cols / 16), range<2>(16, 16));
+    auto kernel = [=](handler& cgh)
+    {
+        cl::sycl::accessor<float, 2, access::mode::read_write, access::target::local> __image(range<2>(launchParams.get_local_range().get(0) + 2, launchParams.get_local_range().get(1) + 2), cgh);
+        cgh.parallel_for<class _syclGaussianKernel>(launchParams, [=](nd_item<2> iter){
+
+            float guassianKernel[9] = {0.0625, 0.125, 0.0625, 0.125, 0.25, 0.125, 0.0625, 0.125, 0.0625};
+
+            auto idx_x = iter.get_global_id(0);
+            auto idx_y = iter.get_global_id(1);
+            auto local_x = iter.get_local_id(0);
+            auto local_y = iter.get_local_id(1);
+
+            auto col_start = iter.get_local_id(0) * iter.get_local_range(0);
+            auto row_start = iter.get_local_id(1) * iter.get_local_range(1);
+
+            auto col_prev = (iter.get_local_id(0) == 0 ? iter.get_local_id(0) : iter.get_local_id(0) - 1) * iter.get_local_range(0);
+            auto row_prev = (iter.get_local_id(1) == 0 ? iter.get_local_id(1) : iter.get_local_id(1) - 1) * iter.get_local_range(1);
+
+            auto col_next = (iter.get_local_id(0) == iter.get_global_range(0) - 1 ? iter.get_local_id(0) : iter.get_local_id(0) + 1) * iter.get_local_range(0);
+            auto row_next = (iter.get_local_id(1) == iter.get_global_range(1) - 1 ? iter.get_local_id(1) : iter.get_local_id(1) + 1) * iter.get_local_range(1);
+            
+            __image[local_y + 1][local_x + 1] = image[(row_start + local_y) * cols + (col_start + local_x)];
+            __image[local_y + 1][0]           = image[(row_start + local_y) * cols + (col_prev  + iter.get_local_range(0) - 1)];
+            __image[local_y + 1][iter.get_local_range(0) + 1] = image[(row_start + local_y) * cols + (col_next + 0)];
+            __image[0][local_x + 1] = image[(row_prev + iter.get_local_range(1) - 1) * cols + (col_start + local_x)];
+            __image[iter.get_local_range(0) + 1][local_x + 1] = image[(row_next + 0) * cols + (col_start + local_x)];
+
+            __image[0][0] = image[(row_prev + iter.get_local_range(1) - 1) * cols + (col_prev + iter.get_local_range(0) - 1)];
+            __image[0][iter.get_local_range(0) + 1] = image[(row_prev + iter.get_local_range(1) - 1) * cols + (col_next + 0)];
+            __image[iter.get_local_range(1) + 1][0] = image[(row_next + 0) * cols + (col_prev + iter.get_local_range(0) - 1)];
+            __image[iter.get_local_range(1) + 1][iter.get_local_range(0) + 1] = image[(row_next + 0) * cols + (col_next + 0)];
+
+            iter.barrier();
+
+            local_x++;
+            local_y++;
+
+            int w_offset_row = 1;
+            int w_offset_col = 1;
+            float smooth = 0.0f;
+
+            for(int i=-1; i < 1; i++)
+#pragma unroll
+                for(int j=-1; j < 1; j++)
+                {
+                    smooth += guassianKernel[(i+w_offset_row) * 3 + (j+w_offset_col)] * __image[local_y + i][local_x + j];
+                }
+
+                image[iter.get_global_id(1) * num_cols + iter.get_global_id(0)] = smooth;
+        });
+    };
 }
