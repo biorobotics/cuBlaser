@@ -21,7 +21,7 @@ ros::Publisher pub_restart;
 FeatureTracker trackerData[NUM_OF_CAM];
 double first_image_time;
 int pub_count = 1;
-bool first_image_flag = true;
+int first_image_flag = true;
 double last_image_time = 0;
 bool init_pub = 0;
 
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "feature_tracker");
   ros::NodeHandle n("~");
   ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME,
-                                 ros::console::levels::Debug);
+                                 ros::console::levels::Info);
   readParameters(n);
 
   for (int i = 0; i < NUM_OF_CAM; i++)
@@ -246,10 +246,6 @@ int main(int argc, char **argv)
   pub_img = n.advertise<sensor_msgs::PointCloud>("feature", 1000);
   pub_match = n.advertise<sensor_msgs::Image>("feature_img", 1000);
   pub_restart = n.advertise<std_msgs::Bool>("restart", 1000);
-  /*
-  if (SHOW_TRACK)
-      cv::namedWindow("vis", cv::WINDOW_NORMAL);
-  */
   ros::spin();
   return 0;
 }

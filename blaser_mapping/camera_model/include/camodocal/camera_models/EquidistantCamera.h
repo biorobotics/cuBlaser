@@ -3,9 +3,16 @@
 
 #include <opencv2/core/core.hpp>
 #include <string>
-
+#include <memory>
 #include "ceres/rotation.h"
 #include "Camera.h"
+
+
+#ifdef DISPATCH_CUDA
+    #include <camera_model/include/camodocal/camera_models/cuda/kernels.hpp>
+    #include <blaser_mapping/common/include/cuda/cudaUtil.hpp>
+    #include <magma_v2.h>
+#endif
 
 namespace camodocal
 {
@@ -15,7 +22,7 @@ namespace camodocal
  * for Conventional, Wide-Angle, and Fish-Eye Lenses, PAMI 2006
  */
 
-class EquidistantCamera: public Camera
+class   : public Camera
 {
 public:
     class Parameters: public Camera::Parameters
@@ -63,6 +70,8 @@ public:
         double m_mv;
         double m_u0;
         double m_v0;
+        std::shared_ptr<deviceManager> manager;
+
     };
 
     EquidistantCamera();
@@ -135,6 +144,23 @@ public:
     void writeParametersToYamlFile(const std::string& filename) const;
 
     std::string parametersToString(void) const;
+    int getNpow(void) const;
+
+    void allocateBufferMemory();
+    std::vector<float*> inputBuffer;
+    std::vector<float*> wr;
+    std::vector<float*> wi;
+    std::vector<float*> work;
+    cv::Point2f* un_cur_pts;
+    cv::Point2f* un_forw_pts;
+    float* wrPointerPos;
+    float* wiPointerPos;
+    float* phis;
+    const string getCameraType(){return "Equidistant";}
+
+    fillEigenValues(cv::Point2f* cur_pts, cv::Point2f* forw_pts, int numSize);
+    fillPoints(int size, cv::Point2f* aun_cur_pts, cv::Point2f*  aun_forw_pts, float FOCAL_LENGHT, float COL, float ROW);
+
 
 private:
     template<typename T>
@@ -148,7 +174,7 @@ private:
                               double& theta, double& phi) const;
 
     Parameters mParameters;
-
+    int workValue;
     double m_inv_K11, m_inv_K13, m_inv_K22, m_inv_K23;
 };
 

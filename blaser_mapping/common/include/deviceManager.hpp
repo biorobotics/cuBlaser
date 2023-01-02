@@ -28,9 +28,11 @@
 
 #ifdef DISPATCH_SYCL
 #include <CL/sycl.hpp>
+#include <magma_v2.h>
 #endif
 #ifdef DISPATCH_CUDA
 #include <blaser_mapping/common/include/cuda/cudaUtil.hpp>
+#include <magma_v2.h>
 #endif
 
 #include <iostream>

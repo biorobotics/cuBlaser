@@ -1,20 +1,24 @@
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#include <magma_v2.h>
 
 #include <camera_model/include/camodocal/camera_models/cuda/kernels.hpp>
+
+#define FLT_MAX 3.402823466e38
 
 // Compute Intensive Kernels
 
 __global__ void _pinhole_liftProjective_0_rejectWithF(cv::Point2f* cur_points, cv::Point2f* fow_points, cv::Point2f* un_cur_points, cv::Point2f* un_fow_points, 
                 double m_inv_k11, double m_inv_k13, double m_inv_k22, double m_inv_k23, 
-                double k1, double k2, double p1, double p2, size_t num_elements)
+                double k1, double k2, double p1, double p2, int FOCAL_LENGHT, size_t num_elements)
 {
     //No point of shared memory here
     double mx_d, my_d,mx2_d, mxy_d, my2_d, mx_u, my_u;
     double rho2_d, rho4_d, radDist_d, Dx_d, Dy_d, inv_denom_d;
     
     int32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
-
+    if(idx > num_elements)
+        return;
     float x = cur_points[idx].x;
     float y = cur_points[idx].y;
 
@@ -72,7 +76,7 @@ __global__ void _pinhole_liftProjective_0_rejectWithF(cv::Point2f* cur_points, c
 
 __global__ void _pinhole_liftProjective_recursive_rejectWithF(cv::Point2f* cur_points, cv::Point2f* fow_points, cv::Point2f* un_cur_points, cv::Point2f* un_fow_points, 
                 double m_inv_k11, double m_inv_k13, double m_inv_k22, double m_inv_k23, 
-                double k1, double k2, double p1, double p2, size_t num_elements)
+                double k1, double k2, double p1, double p2, int FOCAL_LENGHT, size_t num_elements)
 {
     double mx_d, my_d, mx2_d, mxy_d, my2_d, mx_u, my_u;
     double rho2_d, rho4_d, radDist_d, Dx_d, Dy_d, inv_denom_d;
@@ -80,6 +84,9 @@ __global__ void _pinhole_liftProjective_recursive_rejectWithF(cv::Point2f* cur_p
 
     int32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
 
+    if(idx > num_elements)
+        return;
+    
     float x = cur_points[idx].x;
     float y = cur_points[idx].y;
 
@@ -188,14 +195,15 @@ __global__ void _pinhole_liftProjective_recursive_rejectWithF(cv::Point2f* cur_p
 
 __global__ void _pinhole_liftProjective_noDistort_rejectWithF(cv::Point2f* cur_points, cv::Point2f* fow_points, cv::Point2f* un_cur_points, cv::Point2f* un_fow_points, 
                 double m_inv_k11, double m_inv_k13, double m_inv_k22, double m_inv_k23, 
-                double k1, double k2, double p1, double p2, size_t num_elements)
+                double k1, double k2, double p1, double p2, int FOCAL_LENGHT, size_t num_elements)
 
 {
     double mx_d, my_d,mx2_d, mxy_d, my2_d, mx_u, my_u;
     double rho2_d, rho4_d, radDist_d, Dx_d, Dy_d, inv_denom_d;
 
     int32_t idx = threadIdx.x + blockIdx.x * blockDim.x;
-
+    if (idx > num_elements)
+        return;
     float x = cur_points[idx].x;
     float y = cur_points[idx].y;
 
@@ -228,3 +236,54 @@ __global__ void _pinhole_liftProjective_noDistort_rejectWithF(cv::Point2f* cur_p
     un_fow_points[idx].y = my_u;   
 }
 
+
+__global__ void equidistant_fillPoints(cv::Point2f* un_forw_pts, cv::Point2f* un_cur_pts, float* wr, float* wi, float* phis, int size, int lda, int FOCAL_LENGHT, int COL, int ROW){
+
+        if (idx > num_elements)
+            return;
+        
+        float tol = 1e-10;
+        double thetha;
+
+        float min_eigValue = FLT_MAX;
+
+        // first un_cur_pts
+
+        for(int i=0; i < lda; i++){
+            float real_eigValue = (wr + idx)[i];
+            float imag_eigValue = (wi + idx)[i];
+            
+            min_eigValue = imag_eigValue < tol  ? 
+                           real_eigValue > -tol ?
+                           min_eigValue > (real_eigValue < 0.0 ? 0 : real_EigValue) ? 
+                           real_EigValue : min_EigValue 
+                           : min_EigValue 
+                           : min_EigValue;
+            
+        }
+
+        aun_cur_pts[idx].x = FOCAL_LENGTH * (tan(min_eigValue) * cos(this->phis[idx])) + COL >> 1;
+        aun_cur_pts[idx].y = FOCAL_LENGTH * (tan(min_eigValue) * sin(this->phis[idx])) + ROW >> 1;
+
+
+        min_eigValue = FLT_MAX;
+
+        // first un_cur_pts
+
+        for(int i=0; i < lda; i++){
+            float real_eigValue = (wr + 2*idx)[i];
+            float imag_eigValue = (wi + 2*idx)[i];
+            
+            min_eigValue = imag_eigValue < tol  ? 
+                           real_eigValue > -tol ?
+                           min_eigValue > (real_eigValue < 0.0 ? 0 : real_EigValue) ? 
+                           real_EigValue : min_EigValue 
+                           : min_EigValue 
+                           : min_EigValue;
+            
+        }
+
+        aun_forw_pts[idx].x = FOCAL_LENGTH * (tan(min_eigValue) * cos(this->phis[2 * idx])) + COL >> 1;
+        aun_forw_pts[idx].y = FOCAL_LENGTH * (tan(min_eigValue) * sin(this->phis[2 * idx])) + ROW >> 1;
+
+}
